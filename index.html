@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tenkiwi</title>
+<script src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.2.min.js"></script>
+<script>
+$(function(){
+	var x={'bold':false,'createlink':'Link To?','italic':false};
+	$('.t').live('click', bc);
+	jQuery.each(x,function(i,a){$('.bar').append($('<button class="t">'+i+'</button>').data('b',a))});
+	var p = $('#p');
+	p.dblclick(function(){
+		editable(p,true);p.focus()
+	});
+});
+function editable(a,b){a.toggleClass('e');a.attr('contenteditable',b)};
+function bc(){
+	var a=$(this).text(),b=$(this).data('b');
+	document.execCommand(a,null,b?prompt(b):b);
+}
+</script>
+<style>
+#p{display:block;border:1px solid #777;}
+#p.e{border:1px solid #7f7;}
+</style>
+</head>
+<body>
+	<h1>Tenkiwi</h1>
+	<section class="bar"></section>
+	<article id="p">
+	<h1>What's Tenkiwi?</h1>
+	<p>Tenkiwi is a ten ki(lobyte) wi(ki).</p>
+	</article>
+</body>
+</html>
