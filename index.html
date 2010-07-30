@@ -6,31 +6,46 @@
 <script src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.2.min.js"></script>
 <script>
 $(function(){
+	doload();
 	var x={'bold':false,'createlink':'Link To?','italic':false};
 	$('.t').live('click', bc);
-	jQuery.each(x,function(i,a){$('.bar').append($('<button class="t">'+i+'</button>').data('b',a))});
-	var p = $('#p');
-	p.dblclick(function(){
-		editable(p,true);p.focus()
+	$('section').attr('contenteditable', true);
+	jQuery.each(x,function(i,a){$('#bar').append($('<button class="t">'+i+'</button>').data('b',a))});
+	var p = $('section');
+	p.focus(function(){
+		editable($(this),true);
 	});
+	p.blur(function(){editable($(this),false); dosave($(this))});
 });
-function editable(a,b){a.toggleClass('e');a.attr('contenteditable',b)};
+function doload(){
+	$('section').each(function(i,x){
+		var a=localStorage.getItem($(x).attr('id'));
+		a===null ?  a : $(x).html(a);
+	})
+}
+function dosave(a){
+	localStorage.setItem(a.attr('id'),a.html());
+}
+function editable(a,b){a.toggleClass('e');};
 function bc(){
 	var a=$(this).text(),b=$(this).data('b');
 	document.execCommand(a,null,b?prompt(b):b);
 }
 </script>
 <style>
-#p{display:block;border:1px solid #777;}
-#p.e{border:1px solid #7f7;}
+.p{border:1px solid #777;}
+.e{border:1px solid #7f7;}
+section,article{display:block;}section{border:1px dotted #777;}
 </style>
 </head>
 <body>
-	<h1>Tenkiwi</h1>
-	<section class="bar"></section>
-	<article id="p">
-	<h1>What's Tenkiwi?</h1>
-	<p>Tenkiwi is a ten ki(lobyte) wi(ki).</p>
+	<div id=""></div>
+	<div id="bar"></div>
+	<section id="topnav"><h1>Tenkiwi</h1></section>
+	
+	<article id="intro" class="p">
+		<section id="title"><h1>What's Tenkiwi?</h1></section>
+		<section id="body"><p>Tenkiwi is a ten kilobyte wiki.</p></section>
 	</article>
 </body>
 </html>
