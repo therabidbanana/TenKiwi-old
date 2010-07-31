@@ -6,31 +6,35 @@
 <script src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.2.min.js"></script>
 <script>
 var pages={
-	"#intro": [{"What's Tenkiwi?":"<p>Tenkiwi is a ten kilobyte wiki.</p>"},{"What can it do?":"<p>Everything</p>"}],
+	"#intro": [{"What's Tenkiwi?":"<p>Tenkiwi is a ten kilobyte wiki.</p>"},{"What can it do?":"<p>Everything!</p>"}],
 	"#credits":[{"Who's Responsible?":"<p>Tenkiwi was coded by David Haslem.</p>"}],
-	"#wiki-header":[{"Tenkiwi":"<ul><li><a href='#intro'>Intro</a></li><li><a href='#credits'>Credits</a></li></ul>"}]
+	"#kiwi-header":[{"Tenkiwi":"<nav><ul><li><a href='#intro'>Intro</a></li><li><a href='#credits'>Credits</a></li></ul></nav>"}],
+	"#kiwi-footer":[{"":""}]
 };
 var js=JSON.stringify;
 var pagelist=["#intro","#credits"];
 $(function(){
 	var a = window.location.hash; a = (a ? a:'#intro');
-	doload('#wiki-header', $('header.x'));
+	doload('#kiwi-header', $('header.x'));
 	doload(a, $('article.x'));
-	var x={'Bold':false,'CreateLink':'Link To?','Italic':false,'InsertHorizontalRule':false,'InsertUnorderedList':false};
+	
 	$('.t').live('click', bc);
-	$.each(x,function(i,a){$('#bar').append($('<button class="t">'+i+'</button>').data('b',a))});
+	$.each(
+		{'Bold':false, 'Italic':false, 'CreateLink':'Link To?', 'InsertHorizontalRule':false, 'InsertUnorderedList':false},
+		function(i,a){$('#bar').append($('<button class="t">'+i+'</button>').data('b',a))});
 	$('.container a').live('click', linked);
 	var p = $('.q');
 	
 	p.focus(function(){
 		editable($(this),true);
 	});
-	p.blur(function(){editable($(this),false); dosave($(this))});
+	p.blur(function(){editable($(this),false)});
 });
 function linked(){
 	var a = $(this); 
-	var b=this.href;
+	var b=a.attr('href');
 	if(b.search(/^http:/)===-1){
+		if($('body').hasClass('go')) confirm('Save your changes before navigating away?') ? edit_off(true) : edit_off(false);
 		window.location=b; doload(window.location.hash,$('article.x'));
 	}
 	else {this.target='_blank';return true};
@@ -61,22 +65,50 @@ function bc(){
 	document.execCommand(a,null,b?prompt(b):b);
 }
 function edit_on(){
-	$('body').addClass('go');$('.q').attr('contenteditable', true);
+	$('body').addClass('go');$('article .q').attr('contenteditable', true);
 }
-function edit_off(){
-	$('body').removeClass('go');$('.q').attr('contenteditable', false);
+function edit_off(a){
+	$('body').removeClass('go');$('article .q').attr('contenteditable', false);
+	if(a) dosave($('article'));
+	else doload(window.location.hash,$('article.x'));
 }
 </script>
+<script type="text/javascript" src="http://use.typekit.com/zxq5eee.js"></script>
+<script type="text/javascript">try{Typekit.load();}catch(e){}</script>
 <style>
+body{background:#486805;font: 14px/1.5 'Lucida Grande', Lucida, Verdana, sans-serif;margin:0;padding:0;}
+.container{width: 80%;background: #82B51B;margin:40px auto;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px;}
+.container>header{ text-align: center;}
+.container>header h1{font-family: "good-kitty-1","good-kitty-2",cursive;font-size:60px;margin:10px 20px;-webkit-transform:rotate(-3deg);-moz-transform:rotate(-3deg);color:#fff;float:left;}
+.container>article{clear:both;margin-top:10px;background:#fff;padding:20px;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px;}
+h1,p{margin:0.25em 0;}
+h1{font-size:2em;}
+p{font-size:1.3em;}
+nav{float:left;margin-top:40px;}
+nav ul{list-style:none;margin:0;padding:0;}
+nav li{display:inline-block; margin: 0 10px;}
+nav li a{color:#fff; font-size:1.5em; text-decoration:none;}
+nav li a:hover{border-bottom:4px solid white;}
 section,article{display:block;}
-.go section{border:1px dotted #777;}
-.go .e{border:1px solid #7f7;}
+#bar,#bar2{background:rgba(36, 10, 5, 0.9);#240A05;text-align:left;padding: 16px 20px 8px;position:fixed;z-index:20;top:-8px;left:60px;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px;}
+#bar{display:none;}
+#bar div{float:left;margin-right: 20px;}
+.go #bar{display:block;}
+.go #bar2{display:none;}
+article section>header{border-bottom: 2px solid #ccc; margin:0 0 10px;}
+article section>header h1{}
+article section section{border:1px dotted transparent;margin:0 0 15px;}
+.go article section section{border:1px dashed #aaa;}
+.go article section>header h1{background:#edf;}
+.go section.e{border:1px solid #7f7;}
+button{-moz-border-radius:5px;-webkit-border-radius:5px;border-radius:5px;border:2px solid #486805;background:#82B51B;color:#fff;padding:5px;font-size:0.9em;}
+button:hover{background:#9c2;border-color:#571;color:#240A05;}
 </style>
 </head>
 <body>
-	<div id=""><a href="#" onclick="edit_on();return false">Edit</a> <a href="#" onclick="edit_off();return false">Done editing</a></div>
-	<div id="bar"></div>
-	<div class="container">
+	<div id="bar2"><button onclick="edit_on()">Edit</button></div>
+	<div id="bar"><div><button onclick="edit_off(true)">Done editing</button><button onclick="if(confirm('Are you sure you want to discard your changes?')) edit_off(false)">Discard Changes</button></div></div>
+	<div class="container tk-calluna">
 		<header class="x"></header>
 		<article class="x"></article>
 	</div>
