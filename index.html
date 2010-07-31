@@ -39,6 +39,8 @@ function linked(){
 	else {this.target='_blank';return true};
 }
 function doload(a){
+	pagelist=JSON.parse(localStorage.getItem('pagelist'));
+	pagelist=pagelist?pagelist:[];
 	myload('#kiwi-header', $('header.x'));
 	myload(a, $('article.x'));
 	myload('#kiwi-footer', $('footer.x'));
@@ -77,7 +79,10 @@ function dosave(a){
 	});
 	b="["+b.join(',')+"]";
 	localStorage.setItem(c,b);
-	if($.inArray(c,pagelist) === -1) pagelist.push(c);
+	if($.inArray(c,pagelist) === -1){
+		pagelist.push(c);
+		localStorage.setItem('pagelist',JSON.stringify(pagelist));
+	}
 }
 function editable(a,b){a.toggleClass('e');};
 function bc(){
