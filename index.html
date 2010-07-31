@@ -2,21 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Tenkiwi</title>
+<title>TenKiwis</title>
 <script src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.2.min.js"></script>
 <script>
 var pages={
-	"#intro": [{"What's Tenkiwi?":"<p>Tenkiwi is a ten kilobyte wiki.</p>"},{"What can it do?":"<p>Everything!</p>"}],
-	"#credits":[{"Who's Responsible?":"<p>Tenkiwi was coded by David Haslem.</p>"}],
-	"#kiwi-header":[{"Tenkiwi":"<nav><ul><li><a href='#intro'>Intro</a></li><li><a href='#credits'>Credits</a></li></ul></nav>"}],
-	"#kiwi-footer":[{"":""}]
+	"#intro": [{"What's TenKiwis?":"<p>TenKiwis is your very own javascript+html powered wiki.</p>"},{"What can it do?":"<p>You can create as many pages as you'd like, and fill them with whatever content suits your fancy. All of your changes are saved locally, acting like your very own private wiki that doesn't require any extra software to run. Use it to store notes, links or whatever else might suit your fancy.</p>"}],
+	"#credits":[{"Who's Responsible?":"<p>TenKiwis was coded by David Haslem.</p>"}],
+	"#kiwi-header":[{"TenKiwis":"<nav><ul><li><a href='#intro'>Intro</a></li><li><a href='#credits'>Credits</a></li></ul></nav>"}],
+	"#kiwi-footer":[{"More info":"<nav><ul><li><a href='#intro'>Intro</a></li><li><a href='#credits'>Credits</a></li></ul></nav>"}]
 };
 var js=JSON.stringify;
 var pagelist=["#intro","#credits"];
 $(function(){
 	var a = window.location.hash; a = (a ? a:'#intro');
-	doload('#kiwi-header', $('header.x'));
-	doload(a, $('article.x'));
+	doload(a);
 	
 	$('.t').live('click', bc);
 	$.each(
@@ -35,11 +34,16 @@ function linked(){
 	var b=a.attr('href');
 	if(b.search(/^http:/)===-1){
 		if($('body').hasClass('go')) confirm('Save your changes before navigating away?') ? edit_off(true) : edit_off(false);
-		window.location=b; doload(window.location.hash,$('article.x'));
+		window.location=b; doload(window.location.hash);
 	}
 	else {this.target='_blank';return true};
 }
-function doload(a,b){
+function doload(a){
+	myload('#kiwi-header', $('header.x'));
+	myload(a, $('article.x'));
+	myload('#kiwi-footer', $('footer.x'));
+}
+function myload(a,b){
 	var c = localStorage.getItem(a);
 	if(!c){
 		c=pages[a]? pages[a]: ([{'New Page':"<p>New Page</p>"}]);
@@ -48,16 +52,32 @@ function doload(a,b){
 	$.each(c,function(i,x){$.each(x,function(j,y){
 		b.append('<section><header class="q"><h1>'+j+'</h1></header><section class="q">'+y+'</section></section>');
 	})});
+	supermagic(b);
 	b.attr('id',a.substr(1));
 }
+function magic(a){
+	a=a.replace(/\[\[(.+?)\]\]/, '<a href="#$1">$1</a>');
+	return a;
+}
+function supermagic(a){
+	a.html(magic(a.html()));
+	$('a',a).each(function(i,x){
+		x=$(x);
+		if(x.attr('href').match(/^#/)){
+			$.inArray(x.attr('href'),pagelist)===-1?x.addClass('broken'):x.removeClass('broken');
+		}
+	})
+}
 function dosave(a){
-	var b=[];
+	var b=[],c="#"+a.attr('id');
 	a=a.closest('.x');
+	supermagic(a);
 	a.children('section').each(function(i,c){
 		b.push("{"+js($(c).children('header').text())+":"+ js($(c).children('section').html())+"}")
 	});
 	b="["+b.join(',')+"]";
-	localStorage.setItem("#"+a.attr('id'),b);
+	localStorage.setItem(c,b);
+	if($.inArray(c,pagelist) === -1) pagelist.push(c);
 }
 function editable(a,b){a.toggleClass('e');};
 function bc(){
@@ -77,6 +97,8 @@ function edit_off(a){
 <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
 <style>
 body{background:#486805 url(./stripe.png);font: 14px/1.5 'Lucida Grande', Lucida, Verdana, sans-serif;margin:0;padding:0;}
+a.broken{color:#833;}
+a.broken:after{content:"?";}
 .container{width: 80%;background: #82B51B;margin:40px auto;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px; -webkit-box-shadow: 0 0 10px #240;-moz-box-shadow: 0 0 10px #240;box-shadow: 0 0 10px #240;}
 .container>header{ text-align: center;}
 .container>header h1{font-family: "good-kitty-1","good-kitty-2",cursive;font-size:60px;margin:10px 20px;-webkit-transform:rotate(-3deg);-moz-transform:rotate(-3deg);color:#fff;float:left;text-shadow: 0px 1px 3px #486805;}
@@ -111,6 +133,7 @@ button:hover{background:#9c2;border-color:#571;color:#240A05;}
 	<div class="container tk-calluna">
 		<header class="x"></header>
 		<article class="x"><p>If you don't see any content here, you're probably not using a very modern browser. Try Chrome or Firefox 3.6.</p></article>
+		<footer class="x"></footer>
 	</div>
 </body>
 </html>
