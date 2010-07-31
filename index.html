@@ -39,8 +39,8 @@ function linked(){
 	else {this.target='_blank';return true};
 }
 function doload(a){
-	pagelist=JSON.parse(localStorage.getItem('pagelist'));
-	pagelist=pagelist?pagelist:[];
+	b=JSON.parse(localStorage.getItem('pagelist'));
+	pagelist=b?b:pagelist;
 	myload('#kiwi-header', $('header.x'));
 	myload(a, $('article.x'));
 	myload('#kiwi-footer', $('footer.x'));
