@@ -5,47 +5,82 @@
 <title>Tenkiwi</title>
 <script src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.2.min.js"></script>
 <script>
+var pages={
+	"#intro": [{"What's Tenkiwi?":"<p>Tenkiwi is a ten kilobyte wiki.</p>"},{"What can it do?":"<p>Everything</p>"}],
+	"#credits":[{"Who's Responsible?":"<p>Tenkiwi was coded by David Haslem.</p>"}],
+	"#wiki-header":[{"Tenkiwi":"<ul><li><a href='#intro'>Intro</a></li><li><a href='#credits'>Credits</a></li></ul>"}]
+};
+var js=JSON.stringify;
+var pagelist=["#intro","#credits"];
 $(function(){
-	doload();
-	var x={'bold':false,'createlink':'Link To?','italic':false};
+	var a = window.location.hash; a = (a ? a:'#intro');
+	doload('#wiki-header', $('header.x'));
+	doload(a, $('article.x'));
+	var x={'Bold':false,'CreateLink':'Link To?','Italic':false,'InsertHorizontalRule':false,'InsertUnorderedList':false};
 	$('.t').live('click', bc);
-	$('section').attr('contenteditable', true);
-	jQuery.each(x,function(i,a){$('#bar').append($('<button class="t">'+i+'</button>').data('b',a))});
-	var p = $('section');
+	$.each(x,function(i,a){$('#bar').append($('<button class="t">'+i+'</button>').data('b',a))});
+	$('.container a').live('click', linked);
+	var p = $('.q');
+	
 	p.focus(function(){
 		editable($(this),true);
 	});
 	p.blur(function(){editable($(this),false); dosave($(this))});
 });
-function doload(){
-	$('section').each(function(i,x){
-		var a=localStorage.getItem($(x).attr('id'));
-		a===null ?  a : $(x).html(a);
-	})
+function linked(){
+	var a = $(this); 
+	var b=this.href;
+	if(b.search(/^http:/)===-1){
+		window.location=b; doload(window.location.hash,$('article.x'));
+	}
+	else {this.target='_blank';return true};
+}
+function doload(a,b){
+	var c = localStorage.getItem(a);
+	if(!c){
+		c=pages[a]? pages[a]: ([{'New Page':"<p>New Page</p>"}]);
+	}else c=JSON.parse(c);
+	b.empty();
+	$.each(c,function(i,x){$.each(x,function(j,y){
+		b.append('<section><header class="q"><h1>'+j+'</h1></header><section class="q">'+y+'</section></section>');
+	})});
+	b.attr('id',a.substr(1));
 }
 function dosave(a){
-	localStorage.setItem(a.attr('id'),a.html());
+	var b=[];
+	a=a.closest('.x');
+	a.children('section').each(function(i,c){
+		b.push("{"+js($(c).children('header').text())+":"+ js($(c).children('section').html())+"}")
+	});
+	b="["+b.join(',')+"]";
+	alert(js('"bananas!"'));
+	alert(a.attr('id')+"="+b);
+	localStorage.setItem("#"+a.attr('id'),b);
 }
 function editable(a,b){a.toggleClass('e');};
 function bc(){
 	var a=$(this).text(),b=$(this).data('b');
 	document.execCommand(a,null,b?prompt(b):b);
 }
+function edit_on(){
+	$('body').addClass('go');$('.q').attr('contenteditable', true);
+}
+function edit_off(){
+	$('body').removeClass('go');$('.q').attr('contenteditable', false);
+}
 </script>
 <style>
-.p{border:1px solid #777;}
-.e{border:1px solid #7f7;}
-section,article{display:block;}section{border:1px dotted #777;}
+section,article{display:block;}
+.go section{border:1px dotted #777;}
+.go .e{border:1px solid #7f7;}
 </style>
 </head>
 <body>
-	<div id=""></div>
+	<div id=""><a href="#" onclick="edit_on();return false">Edit</a> <a href="#" onclick="edit_off();return false">Done editing</a></div>
 	<div id="bar"></div>
-	<section id="topnav"><h1>Tenkiwi</h1></section>
-	
-	<article id="intro" class="p">
-		<section id="title"><h1>What's Tenkiwi?</h1></section>
-		<section id="body"><p>Tenkiwi is a ten kilobyte wiki.</p></section>
-	</article>
+	<div class="container">
+		<header class="x"></header>
+		<article class="x"></article>
+	</div>
 </body>
 </html>
