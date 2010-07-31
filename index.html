@@ -20,7 +20,7 @@ $(function(){
 	
 	$('.t').live('click', bc);
 	$.each(
-		{'Bold':false, 'Italic':false, 'CreateLink':'Link To?', 'InsertHorizontalRule':false, 'InsertUnorderedList':false},
+		{'Bold':false, 'Italic':false, 'CreateLink':'Link To?', 'InsertUnorderedList':false},
 		function(i,a){$('#bar').append($('<button class="t">'+i+'</button>').data('b',a))});
 	$('.container a').live('click', linked);
 	var p = $('.q');
@@ -77,9 +77,9 @@ function edit_off(a){
 <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
 <style>
 body{background:#486805;font: 14px/1.5 'Lucida Grande', Lucida, Verdana, sans-serif;margin:0;padding:0;}
-.container{width: 80%;background: #82B51B;margin:40px auto;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px;}
+.container{width: 80%;background: #82B51B;margin:40px auto;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px; -webkit-box-shadow: 0 0 10px #240;-moz-box-shadow: 0 0 10px #240;box-shadow: 0 0 10px #240;}
 .container>header{ text-align: center;}
-.container>header h1{font-family: "good-kitty-1","good-kitty-2",cursive;font-size:60px;margin:10px 20px;-webkit-transform:rotate(-3deg);-moz-transform:rotate(-3deg);color:#fff;float:left;}
+.container>header h1{font-family: "good-kitty-1","good-kitty-2",cursive;font-size:60px;margin:10px 20px;-webkit-transform:rotate(-3deg);-moz-transform:rotate(-3deg);color:#fff;float:left;text-shadow: 0px 1px 3px #486805;}
 .container>article{clear:both;margin-top:10px;background:#fff;padding:20px;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px;}
 h1,p{margin:0.25em 0;}
 h1{font-size:2em;}
@@ -99,7 +99,7 @@ article section>header{border-bottom: 2px solid #ccc; margin:0 0 10px;}
 article section>header h1{}
 article section section{border:1px dotted transparent;margin:0 0 15px;}
 .go article section section{border:1px dashed #aaa;}
-.go article section>header h1{background:#edf;}
+.go article section>header h1{background:#ded;}
 .go section.e{border:1px solid #7f7;}
 button{-moz-border-radius:5px;-webkit-border-radius:5px;border-radius:5px;border:2px solid #486805;background:#82B51B;color:#fff;padding:5px;font-size:0.9em;}
 button:hover{background:#9c2;border-color:#571;color:#240A05;}
@@ -110,7 +110,7 @@ button:hover{background:#9c2;border-color:#571;color:#240A05;}
 	<div id="bar"><div><button onclick="edit_off(true)">Done editing</button><button onclick="if(confirm('Are you sure you want to discard your changes?')) edit_off(false)">Discard Changes</button></div></div>
 	<div class="container tk-calluna">
 		<header class="x"></header>
-		<article class="x"></article>
+		<article class="x"><p>If you don't see any content here, you're probably not using a very modern browser. Try Chrome or Firefox 3.6.</p></article>
 	</div>
 </body>
 </html>
