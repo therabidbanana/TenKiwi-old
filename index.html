@@ -53,8 +53,6 @@ function dosave(a){
 		b.push("{"+js($(c).children('header').text())+":"+ js($(c).children('section').html())+"}")
 	});
 	b="["+b.join(',')+"]";
-	alert(js('"bananas!"'));
-	alert(a.attr('id')+"="+b);
 	localStorage.setItem("#"+a.attr('id'),b);
 }
 function editable(a,b){a.toggleClass('e');};
