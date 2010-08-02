@@ -6,22 +6,22 @@
 <script src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.2.min.js"></script>
 <script>
 var pages={
-	"#intro": [{"What's TenKiwi?":"<p>TenKiwi is your very own javascript+html powered wiki.</p>"},{"What can it do?":"<p>You can create as many pages as you'd like, and fill them with whatever [[content]] suits your fancy. All of your changes are saved locally, acting like your very own private wiki that doesn't require any extra software to run. Use it to store notes, links or whatever else might suit your fancy.</p>"}],
-	"#credits":[{"Who's Responsible?":"<p>TenKiwi was coded by David Haslem.</p>"}],
-	"#content":[{"Content Formatting":"<p>Content Formatting is easy in TenKiwi - **just try editing** _this page_ to see. You can link back to a page, like the [[intro]] page, or to an external site like http://www.google.com , or even change it up and link to \"a page with special link text\":[[content]].</p>"}],
-	"#kiwi-header":[{"TenKiwi":"<nav><ul><li><a href='#intro'>Intro</a></li><li><a href='#credits'>Credits</a></li></ul></nav>"}],
+	"#Intro": [{"What's TenKiwi?":"<p>TenKiwi is your very own javascript+html powered wiki.</p>"},{"What can it do?":"<p>You can create as many pages as you'd like, and fill them with whatever \"content\":[[Formatting]] suits your fancy. All of your changes are saved locally, acting like your very own private wiki that doesn't require any extra software to run. Use it to store notes, links or whatever else might suit your fancy.</p>"}],
+	"#Credits":[{"Who's Responsible?":"<p>TenKiwi was coded by David Haslem.</p>"}],
+	"#Formatting":[{"Content Formatting":"<p>Content Formatting is easy in TenKiwi - **just try editing** _this page_ to see. You can link back to a page, like the [[Intro]] page, or to an external site like http://www.google.com , or even change it up and link to \"a page with special link text\":[[Formatting]], or even an \"external site\":http://www.google.com with special text.</p>"}],
+	"#kiwi-header":[{"TenKiwi":"<nav><ul><li>[[Intro]]</li><li>[[Credits]]</li></ul></nav>"}],
 	"#kiwi-footer":[{"All Pages":"%%pagelist%%"}]
 };
 var js=JSON.stringify,jp=JSON.parse,exec=document.execCommand;
-var pagelist=["#intro","#credits","#content"];
+var pagelist=["#Intro","#Credits","#Formatting"];
 $(function(){
-	var a = window.location.hash; a = (a ? a:'#intro');
+	var a = window.location.hash; a = (a ? a:'#Intro');
 	doload(a);
 	
 	$('.t').live('click', bc);
 	$.each(
-		{'CreateLink':'Link To?', 'InsertUnorderedList':false},
-		function(i,a){$('#bar').append($('<button class="t">'+i+'</button>').data('b',a))});
+		{'InsertUnorderedList':false},
+		function(i,a){$('#bar').append($('<button class="t blue">'+i+'</button>').data('b',a))});
 	$('.container a').live('click', linked);
 	var p = $('.q');
 	
@@ -65,7 +65,8 @@ function magic(a){
 	a=a.replace(/\b_([^_]+?)_\b/g, '<em>$1</em>');
 	a=a.replace(/\[\[([^"]+?)\]\]/g, '<a href="#$1">$1</a>');
 	a=a.replace(/`([^`]+?)`/g, '<code>$1</code>');
-	a=a.replace(/(http:\/\/[^\s]+)/g, '<a href="$1">$1</a>');
+	a=a.replace(/(https?:\/\/[^\s"]+)/g, '<a href="$1">$1</a>');
+	a=a.replace(/<a href="([^"]+?)([,\.\?])">(.+?)\2<\/a>/g, '<a href="$1">$1</a>$2');
 	a=a.replace(/"([^"]+?)":<a href="([^"]+?)">(.+?)<\/a>/g, '<a href="$2">$1</a>');
 	return a;
 }
@@ -145,15 +146,23 @@ article section section{border:1px dotted transparent;margin:0 0 15px;}
 .go article section section{border:1px dashed #aaa;}
 .go article section>header h1{background:#ded;}
 .go section.e{border:1px solid #7f7;}
-button{-moz-border-radius:5px;-webkit-border-radius:5px;border-radius:5px;border:2px solid #486805;background:#82B51B;color:#fff;padding:5px;font-size:0.9em;}
-button:hover{background:#9c2;border-color:#571;color:#240A05;}
+button{-moz-border-radius:5px;-webkit-border-radius:5px;border-radius:5px;background:#82B51B;color:#fff;padding:5px 9px;font-size:0.9em;font-weight:bold;border:0;-moz-box-shadow: 0 1px 3px rgba(0,0,0,0.25); -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.25); box-shadow: 0 1px 3px rgba(0,0,0,0.25); border-bottom: 1px solid rgba(0,0,0,0.25); position: relative; cursor: pointer;text-shadow: 0 -1px 1px rgba(0,0,0,0.25); font-weight: bold; display: inline-block;}
+button:hover{background:#72A50B;}
 code{font: 13px Monaco,"Courier New", Courier, mono;}
 p code{background:#eef; padding:3px;border: 1px solid #dde;color:#222;}
+button.yellow{background:#ffb515}
+button.orange{background:#ff5c00}
+button.red{background:#e33100}
+button.blue{background:#2daebf}
+button.yellow:hover{background:#efa505}
+button.orange:hover{background:#ef4c00}
+button.red:hover{background:#d32100}
+button.blue:hover{background:#1d9eaf}
 </style>
 </head>
 <body>
 	<div id="bar2"><button onclick="edit_on()">Edit</button></div>
-	<div id="bar"><div><button onclick="edit_off(true)">Done editing</button><button onclick="if(confirm('Are you sure you want to discard your changes?')) edit_off(false)">Discard Changes</button></div></div>
+	<div id="bar"><div><button onclick="edit_off(true)">Done editing</button><button class="red" onclick="if(confirm('Are you sure you want to discard your changes?')) edit_off(false)">Discard Changes</button></div></div>
 	<div class="container tk-calluna">
 		<header class="x"></header>
 		<article class="x"><p>If you don't see any content here, there was a Javascript issue. It's possible you're not using a very modern browser - TenKiwi relies on a lot of cutting edge features. Try Chrome 5 or Firefox 3.6.</p></article>
