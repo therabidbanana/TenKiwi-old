@@ -6,13 +6,14 @@
 <script src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.2.min.js"></script>
 <script>
 var pages={
-	"#intro": [{"What's TenKiwi?":"<p>TenKiwi is your very own javascript+html powered wiki.</p>"},{"What can it do?":"<p>You can create as many pages as you'd like, and fill them with whatever content suits your fancy. All of your changes are saved locally, acting like your very own private wiki that doesn't require any extra software to run. Use it to store notes, links or whatever else might suit your fancy.</p>"}],
+	"#intro": [{"What's TenKiwi?":"<p>TenKiwi is your very own javascript+html powered wiki.</p>"},{"What can it do?":"<p>You can create as many pages as you'd like, and fill them with whatever [[content]] suits your fancy. All of your changes are saved locally, acting like your very own private wiki that doesn't require any extra software to run. Use it to store notes, links or whatever else might suit your fancy.</p>"}],
 	"#credits":[{"Who's Responsible?":"<p>TenKiwi was coded by David Haslem.</p>"}],
+	"#content":[{"Content Formatting":"<p>Content Formatting is easy in TenKiwi - **just try editing** _this page_ to see. You can link back to a page, like the [[intro]] page, or to an external site like http://www.google.com , or even change it up and link to \"a page with special link text\":[[content]].</p>"}],
 	"#kiwi-header":[{"TenKiwi":"<nav><ul><li><a href='#intro'>Intro</a></li><li><a href='#credits'>Credits</a></li></ul></nav>"}],
 	"#kiwi-footer":[{"All Pages":"%%pagelist%%"}]
 };
 var js=JSON.stringify,jp=JSON.parse,exec=document.execCommand;
-var pagelist=["#intro","#credits"];
+var pagelist=["#intro","#credits","#content"];
 $(function(){
 	var a = window.location.hash; a = (a ? a:'#intro');
 	doload(a);
