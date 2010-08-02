@@ -9,10 +9,9 @@ var pages={
 	"#intro": [{"What's TenKiwi?":"<p>TenKiwi is your very own javascript+html powered wiki.</p>"},{"What can it do?":"<p>You can create as many pages as you'd like, and fill them with whatever content suits your fancy. All of your changes are saved locally, acting like your very own private wiki that doesn't require any extra software to run. Use it to store notes, links or whatever else might suit your fancy.</p>"}],
 	"#credits":[{"Who's Responsible?":"<p>TenKiwi was coded by David Haslem.</p>"}],
 	"#kiwi-header":[{"TenKiwi":"<nav><ul><li><a href='#intro'>Intro</a></li><li><a href='#credits'>Credits</a></li></ul></nav>"}],
-	"#kiwi-footer":[{"More info":"<nav><ul><li><a href='#intro'>Intro</a></li><li><a href='#credits'>Credits</a></li></ul></nav>"}]
+	"#kiwi-footer":[{"All Pages":"%%pagelist%%"}]
 };
-var js=JSON.stringify;
-var jp=JSON.parse;
+var js=JSON.stringify,jp=JSON.parse,exec=document.execCommand;
 var pagelist=["#intro","#credits"];
 $(function(){
 	var a = window.location.hash; a = (a ? a:'#intro');
@@ -29,8 +28,7 @@ $(function(){
 		editable($(this),true);
 	});
 	p.blur(function(){editable($(this),false)});
-	$(window).bind('hashchange', function(){ doload(location.hash); return false});
-	$(window).hashchange();
+	$(window).bind('hashchange', function(){ doload(location.hash); return false}).hashchange();
 });
 function linked(){
 	var a = $(this); 
@@ -61,6 +59,7 @@ function myload(a,b){
 	b.attr('id',a.substr(1));
 }
 function magic(a){
+	a=a.replace(/%%pagelist%%/g, "<ul>"+$.map(pagelist, function(x){ return "<li>[["+x.substr(1)+"]]</li>"}).join('\n')+"</ul>");
 	a=a.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
 	a=a.replace(/\b_([^_]+?)_\b/g, '<em>$1</em>');
 	a=a.replace(/\[\[([^"]+?)\]\]/g, '<a href="#$1">$1</a>');
@@ -118,17 +117,21 @@ function edit_off(a){
 body{background:#486805 url(./stripe.png);font: 14px/1.5 'Lucida Grande', Lucida, Verdana, sans-serif;margin:0;padding:0;}
 a.broken{color:#833;}
 a.broken:after{content:"?";}
-.container{width: 80%;background: #82B51B;margin:40px auto;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px; -webkit-box-shadow: 0 0 10px #240;-moz-box-shadow: 0 0 10px #240;box-shadow: 0 0 10px #240;}
+.container{width: 80%;background: #82B51B;margin:40px auto;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px; -webkit-box-shadow: 0 0 3px #240;-moz-box-shadow: 0 0 3px #240;box-shadow: 0 0 3px #240;}
 .container>header{ text-align: center;}
 .container>header h1{font-family: "good-kitty-1","good-kitty-2",cursive;font-size:60px;margin:10px 20px;-webkit-transform:rotate(-3deg);-moz-transform:rotate(-3deg);color:#fff;float:left;text-shadow: 0px 1px 3px #486805;}
 .container>article{clear:both;margin-top:10px;background:#fff;padding:20px;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px;}
 h1{margin:0.25em 0; font-size:2em;}
-p{font-size:1.3em;margin:0.85em 0;}
+p,article li{font-size:1.3em;}
 nav{float:left;margin-top:40px;}
 nav ul{list-style:none;margin:0;padding:0;}
 nav li{display:inline-block; margin: 0 10px;}
 nav li a{color:#fff; font-size:1.5em; text-decoration:none;}
 nav li a:hover{border-bottom:4px solid white;}
+footer a, footer{color:#240;}
+footer{padding: 1em;}
+footer:after{clear:both; content: ".";display: block;height: 0;visibility:hidden;}
+footer li{width: 33%; float:left;}
 section,article{display:block;}
 #bar,#bar2{background:rgba(36, 10, 5, 0.9);#240A05;text-align:left;padding: 16px 20px 8px;position:fixed;z-index:20;top:-8px;left:60px;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px;}
 #bar{display:none;}
@@ -152,7 +155,7 @@ p code{background:#eef; padding:3px;border: 1px solid #dde;color:#222;}
 	<div id="bar"><div><button onclick="edit_off(true)">Done editing</button><button onclick="if(confirm('Are you sure you want to discard your changes?')) edit_off(false)">Discard Changes</button></div></div>
 	<div class="container tk-calluna">
 		<header class="x"></header>
-		<article class="x"><p>If you don't see any content here, you're probably not using a very modern browser. Try Chrome or Firefox 3.6.</p></article>
+		<article class="x"><p>If you don't see any content here, there was a Javascript issue. It's possible you're not using a very modern browser - TenKiwi relies on a lot of cutting edge features. Try Chrome 5 or Firefox 3.6.</p></article>
 		<footer class="x"></footer>
 	</div>
 </body>
