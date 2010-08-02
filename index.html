@@ -29,13 +29,15 @@ $(function(){
 		editable($(this),true);
 	});
 	p.blur(function(){editable($(this),false)});
+	$(window).bind('hashchange', function(){ doload(location.hash); return false});
+	$(window).hashchange();
 });
 function linked(){
 	var a = $(this); 
 	var b=a.attr('href');
 	if(b.search(/^http:/)===-1){
 		if($('body').hasClass('go')) confirm('Save your changes before navigating away?') ? edit_off(true) : edit_off(false);
-		window.location=b; doload(window.location.hash);
+		window.location=b; 
 	}
 	else {this.target='_blank';return true};
 }
@@ -63,7 +65,8 @@ function magic(a){
 	a=a.replace(/\b_([^_]+?)_\b/g, '<em>$1</em>');
 	a=a.replace(/\[\[([^"]+?)\]\]/g, '<a href="#$1">$1</a>');
 	a=a.replace(/`([^`]+?)`/g, '<code>$1</code>');
-	a=a.replace(/\b(http:\/\/[^\s]+)/g, '<a href="$1">$1</a>');
+	a=a.replace(/(http:\/\/[^\s]+)/g, '<a href="$1">$1</a>');
+	a=a.replace(/"([^"]+?)":<a href="([^"]+?)">(.+?)<\/a>/g, '<a href="$2">$1</a>');
 	return a;
 }
 function supermagic(a){
@@ -141,7 +144,7 @@ article section section{border:1px dotted transparent;margin:0 0 15px;}
 button{-moz-border-radius:5px;-webkit-border-radius:5px;border-radius:5px;border:2px solid #486805;background:#82B51B;color:#fff;padding:5px;font-size:0.9em;}
 button:hover{background:#9c2;border-color:#571;color:#240A05;}
 code{font: 13px Monaco,"Courier New", Courier, mono;}
-p code{background:#eef; padding:4px;border: 1px solid #dde;}
+p code{background:#eef; padding:3px;border: 1px solid #dde;color:#222;}
 </style>
 </head>
 <body>
