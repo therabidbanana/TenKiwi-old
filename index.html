@@ -3,33 +3,32 @@
 <head>
 <meta charset="utf-8">
 <title>TenKiwi</title>
-<script src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.2.min.js"></script>
+<!-- <script src="http://ajax.microsoft.com/ajax/jquery/jquery-1.4.2.min.js"></script> -->
+<script src="./jquery-1.4.2.min.js"></script> 
 <script>
 var pages={
-	"#Intro": [{"What's TenKiwi?":"<p>TenKiwi is your very own javascript+html powered wiki.</p>"},{"What can it do?":"<p>You can create as many pages as you'd like, and fill them with whatever \"content\":[[Formatting]] suits your fancy. All of your changes are saved locally, acting like your very own private wiki that doesn't require any extra software to run. Use it to store notes, links or whatever else might suit your fancy.</p>"}],
+	"#Home": [{"What's TenKiwi?":"<p>TenKiwi is your very own javascript+html powered wiki.</p>"},{"What can it do?":"<p>You can create as many pages as you'd like, and fill them with whatever \"content\":[[Formatting]] suits your fancy. All of your changes are saved locally, acting like your very own private wiki that doesn't require any extra software to run. Use it to store notes, links or whatever else might suit your fancy.</p>"}],
 	"#Credits":[{"Who's Responsible?":"<p>TenKiwi was coded by David Haslem.</p>"}],
-	"#Formatting":[{"Content Formatting":"<p>Content Formatting is easy in TenKiwi - **just try editing** _this page_ to see. You can link back to a page, like the [[Intro]] page, or to an external site like http://www.google.com , or even change it up and link to \"a page with special link text\":[[Formatting]], or even an \"external site\":http://www.google.com with special text.</p>"}],
-	"#kiwi-header":[{"TenKiwi":"<nav><ul><li>[[Intro]]</li><li>[[Credits]]</li></ul></nav>"}],
-	"#kiwi-footer":[{"All Pages":"%%pagelist%%"}]
+	"#Formatting":[{"Content Formatting":"<p>Content Formatting is easy in TenKiwi - **just try editing** _this page_ to see. You can link back to a page, like the [[Home]] page, or to an external site like http://www.google.com, or even change it up and link to \"a page with special link text\":[[Formatting]], or even an \"external site\":http://www.google.com with special text.</p>"}],
+	"#kiwi-header":[{"TenKiwi":"<nav><ul><li>[[Home]]</li><li>[[Credits]]</li></ul></nav>"}],
+	"#kiwi-footer":[{"All Pages":"%%pagelist%%"}],
+	"#kiwi-settings":[{"Save Url":"", "Load Url":""}]
 };
-var js=JSON.stringify,jp=JSON.parse,exec=document.execCommand;
-var pagelist=["#Intro","#Credits","#Formatting"];
+var js=JSON.stringify,jp=JSON.parse,ls=localStorage,dc=document;
+var pagelist=["#Home","#Credits","#Formatting"];
 $(function(){
-	var a = window.location.hash; a = (a ? a:'#Intro');
-	doload(a);
-	
-	$('.t').live('click', bc);
-	$.each(
-		{'InsertUnorderedList':false},
-		function(i,a){$('#bar').append($('<button class="t blue">'+i+'</button>').data('b',a))});
-	$('.container a').live('click', linked);
+	var a = location.hash; a = (a ? a:'#Home');
 	var p = $('.q');
+	doload(a);
+	$.each(
+		{'Bulleted List':function(){dc.execCommand('InsertUnorderedList',null,false)},'Numbered List':function(){dc.execCommand('InsertOrderedList',null,false)}},
+		function(i,a){$('#bar').append($('<button class="t blue">'+i+'</button>').click(a))});
+	$('.container a').live('click', linked);
+	$('article button.red').live('click', remove_s);
 	
-	p.focus(function(){
-		editable($(this),true);
-	});
-	p.blur(function(){editable($(this),false)});
-	$(window).bind('hashchange', function(){ doload(location.hash); return false}).hashchange();
+	p.focus(function(){$(this).toggleClass('e'); });
+	p.blur(function(){$(this).toggleClass('e'); });
+	$(window).bind('hashchange', function(){ doload(location.hash)}).fire('hashchange');
 });
 function linked(){
 	var a = $(this); 
@@ -41,20 +40,20 @@ function linked(){
 	else {this.target='_blank';return true};
 }
 function doload(a){
-	b=jp(localStorage.getItem('pagelist'));
+	b=jp(ls.getItem('pagelist'));
 	pagelist=b?b:pagelist;
 	myload('#kiwi-header', $('header.x'));
 	myload(a, $('article.x'));
 	myload('#kiwi-footer', $('footer.x'));
 }
 function myload(a,b){
-	var c = localStorage.getItem(a);
+	var c = ls.getItem(a);
 	if(!c){
 		c=pages[a]? pages[a]: jp("[{\""+a.substr(1)+"\":\"<p>This is a new page</p>\"}]");
 	}else c=jp(c);
 	b.empty();
 	$.each(c,function(i,x){$.each(x,function(j,y){
-		b.append('<section><header class="q"><h1>'+j+'</h1></header><section class="q">'+y+'</section></section>');
+		b.append('<section class="clear"><header class="q"><h1>'+j+'</h1></header><section class="q">'+y+'</section></section>');
 	})});
 	supermagic(b);
 	b.attr('id',a.substr(1));
@@ -65,7 +64,7 @@ function magic(a){
 	a=a.replace(/\b_([^_]+?)_\b/g, '<em>$1</em>');
 	a=a.replace(/\[\[([^"]+?)\]\]/g, '<a href="#$1">$1</a>');
 	a=a.replace(/`([^`]+?)`/g, '<code>$1</code>');
-	a=a.replace(/(https?:\/\/[^\s"]+)/g, '<a href="$1">$1</a>');
+	a=a.replace(/(https?:\/\/[^\s"<]+)/g, '<a href="$1">$1</a>');
 	a=a.replace(/<a href="([^"]+?)([,\.\?])">(.+?)\2<\/a>/g, '<a href="$1">$1</a>$2');
 	a=a.replace(/"([^"]+?)":<a href="([^"]+?)">(.+?)<\/a>/g, '<a href="$2">$1</a>');
 	return a;
@@ -80,9 +79,15 @@ function supermagic(a){
 		}
 	})
 }
-function unsupermagic(a){
+function unmagic(a){
 	a=a.closest('.x');
 	a.html(a.data("unmagic"));
+}
+function settings(){
+	var a = '#kiwi-settings', b={};
+	a= (ls.getItem(a) ? ls.getItem(a) : js(pages[a]));
+	$.each(jp(a), function(i,x){$.each(x, function(c,d){b[c]=d})});
+	return b;
 }
 function dosave(a){
 	var b=[],c="#";
@@ -92,47 +97,51 @@ function dosave(a){
 		b.push("{"+js($(c).children('header').text())+":"+ js($(c).children('section').html())+"}")
 	});
 	b="["+b.join(',')+"]";
-	localStorage.setItem(c,b);
+	ls.setItem(c,b);
+	if(settings()['Save Url'].match(/https?:\/\/(.+?)/)) $.post(settings()['Save Url'], {'pages':b}, function(){}, 'json');
 	if($.inArray(c,pagelist) === -1){
 		pagelist.push(c);
-		localStorage.setItem('pagelist',js(pagelist));
+		ls.setItem('pagelist',js(pagelist));
 	}
 	supermagic(a);
 }
-function editable(a,b){a.toggleClass('e');};
-function bc(){
-	var a=$(this).text(),b=$(this).data('b');
-	document.execCommand(a,null,b?prompt(b):b);
-}
 function edit_on(){
-	$('body').addClass('go');unsupermagic($('article'));$('article .q').attr('contenteditable', true);
+	$('body').addClass('go');unmagic($('article'));$('article .q').attr('contenteditable', true);$('article button.red').remove();$('article header.q').before('<button class="red">Remove</button>');
 }
 function edit_off(a){
-	$('body').removeClass('go');$('article .q').attr('contenteditable', false);
+	$('body').removeClass('go');$('article .q').attr('contenteditable', false);$('article button.red').remove();
 	if(a) dosave($('article'));
-	else doload(window.location.hash,$('article.x'));
+	else doload(location.hash,$('article.x'));
+}
+function remove_s(){
+	$(this).closest('section').remove();
+	$('article.x').data("unmagic",$('article.x').html());
+}
+function new_s(){
+	$('article.x').append('<section><header class="q"><h1>New</h1></header><section class="q"><p>New content</p></section></section>');
+	$('article.x').data("unmagic",$('article.x').html());
 }
 </script>
 <script type="text/javascript" src="http://use.typekit.com/zxq5eee.js"></script>
 <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
 <style>
-body{background:#486805 url(./stripe.png);font: 14px/1.5 'Lucida Grande', Lucida, Verdana, sans-serif;margin:0;padding:0;}
+body{background:#486805 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFUAAABVCAIAAAC3lz8NAAABmUlEQVR4nOXauW0DURRD0WsByqccl%2BL%2BK1DuxIEAQdYy%2BvOXt%2FCxAeKAKb%2B%2Bf3DJtp19iv%2Fn5NIaBH%2B5%2FDr44%2BCx3z8UHmN%2FNDyW%2FoB4zPwx8dj4w%2BIx8EfGs9ofHM9Sf3w86%2Fwp8CzyZ8Gzwp8Iz3R%2FLjxz%2FenwTPRnxDPLnxTPFH9ePOP%2B1HgG%2FdnxjPgF8HT7NfD0%2BWXwdPiV8Bz1i%2BE55NfD0%2B6XxNPoV8XT4hfG89GvjWffL49nx18Bzzt%2FETwv%2FXXwPPtL4XnwV8Nz7y%2BI5%2BaviefqL4sHTpXxeP3%2FHuKF37azv98Rj%2Fv%2Bvnh8%2Fe54HP0R8Hj5g%2BBx8cfBY%2B8PhcfYHw2PpT8gHjN%2FTDw2%2FrB4DPyR8az2B8ez1B8fzzp%2FCjyL%2FFnwrPAnwjPdnwvPXH86PBP9GfHM8ifFM8WfF8%2B4PzWeQX92PCN%2BATzdfg08fX4ZPB1%2BJTxH%2FWJ4Dvn18LT7JfE0%2BlXxtPiF8Xz0a%2BPZ98vj2fFXwPPOXwTPS38dPM%2F%2BUnge%2FNXw3PsL4rn5a%2BK5%2BsvigT%2BdOP1fptZi2gAAAABJRU5ErkJggg%3D%3D);font: 14px/1.5 'Lucida Grande', Lucida, Verdana, sans-serif;margin:0;padding:0;}
 a.broken{color:#833;}
 a.broken:after{content:"?";}
 .container{width: 80%;background: #82B51B;margin:40px auto;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px; -webkit-box-shadow: 0 0 3px #240;-moz-box-shadow: 0 0 3px #240;box-shadow: 0 0 3px #240;}
 .container>header{ text-align: center;}
-.container>header h1{font-family: "good-kitty-1","good-kitty-2",cursive;font-size:60px;margin:10px 20px;-webkit-transform:rotate(-3deg);-moz-transform:rotate(-3deg);color:#fff;float:left;text-shadow: 0px 1px 3px #486805;}
+.container>header h1{font-family:"good-kitty-1","good-kitty-2",cursive;font-size:60px;margin:10px 20px;-webkit-transform:rotate(-3deg);-moz-transform:rotate(-3deg);color:#fff;float:left;text-shadow: 0px 1px 3px #486805;}
 .container>article{clear:both;margin-top:10px;background:#fff;padding:20px;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px;}
 h1{margin:0.25em 0; font-size:2em;}
 p,article li{font-size:1.3em;}
-nav{float:left;margin-top:40px;}
-nav ul{list-style:none;margin:0;padding:0;}
-nav li{display:inline-block; margin: 0 10px;}
-nav li a{color:#fff; font-size:1.5em; text-decoration:none;}
-nav li a:hover{border-bottom:4px solid white;}
+header nav{float:left;margin-top:40px;}
+header nav ul{list-style:none;margin:0;padding:0;}
+header nav li{display:inline-block; margin: 0 10px;}
+header nav li a{color:#fff; font-size:1.5em; text-decoration:none;}
+header nav li a:hover{border-bottom:4px solid white;}
 footer a, footer{color:#240;}
 footer{padding: 1em;}
-footer:after{clear:both; content: ".";display: block;height: 0;visibility:hidden;}
+.clear:after{clear:both; content: ".";display: block;height: 0;visibility:hidden;}
 footer li{width: 33%; float:left;}
 section,article{display:block;}
 #bar,#bar2{background:rgba(36, 10, 5, 0.9);#240A05;text-align:left;padding: 16px 20px 8px;position:fixed;z-index:20;top:-8px;left:60px;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px;}
@@ -141,6 +150,7 @@ section,article{display:block;}
 .go #bar{display:block;}
 .go #bar2{display:none;}
 article section>header{border-bottom: 2px solid #ccc; margin:0 0 10px;}
+article section button.red{float:right;margin:7px 5px;}
 article section>header h1{}
 article section section{border:1px dotted transparent;margin:0 0 15px;}
 .go article section section{border:1px dashed #aaa;}
@@ -150,22 +160,17 @@ button{-moz-border-radius:5px;-webkit-border-radius:5px;border-radius:5px;backgr
 button:hover{background:#72A50B;}
 code{font: 13px Monaco,"Courier New", Courier, mono;}
 p code{background:#eef; padding:3px;border: 1px solid #dde;color:#222;}
-button.yellow{background:#ffb515}
-button.orange{background:#ff5c00}
-button.red{background:#e33100}
-button.blue{background:#2daebf}
-button.yellow:hover{background:#efa505}
-button.orange:hover{background:#ef4c00}
-button.red:hover{background:#d32100}
-button.blue:hover{background:#1d9eaf}
+button.orange{background:#ff5c00}button.orange:hover{background:#ef4c00}
+button.red{background:#e33100}button.red:hover{background:#d32100}
+button.blue{background:#2daebf}button.blue:hover{background:#1d9eaf}
 </style>
 </head>
 <body>
 	<div id="bar2"><button onclick="edit_on()">Edit</button></div>
-	<div id="bar"><div><button onclick="edit_off(true)">Done editing</button><button class="red" onclick="if(confirm('Are you sure you want to discard your changes?')) edit_off(false)">Discard Changes</button></div></div>
+	<div id="bar"><div><button onclick="edit_off(true)">Done editing</button><button class="red" onclick="if(confirm('Are you sure you want to discard your changes?')) edit_off(false)">Discard Changes</button><button class="orange" onclick="new_s();edit_on()">New Section</button></div></div>
 	<div class="container tk-calluna">
 		<header class="x"></header>
-		<article class="x"><p>If you don't see any content here, there was a Javascript issue. It's possible you're not using a very modern browser - TenKiwi relies on a lot of cutting edge features. Try Chrome 5 or Firefox 3.6.</p></article>
+		<article class="x"><h1>Javascript Error</h1><p>If you don't see any content here, there was a Javascript issue. It's possible you're not using a very modern browser - TenKiwi relies on a lot of cutting edge features. Try Chrome 5 or Firefox 3.6.</p></article>
 		<footer class="x"></footer>
 	</div>
 </body>
