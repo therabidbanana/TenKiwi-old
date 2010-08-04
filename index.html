@@ -23,26 +23,33 @@ var pages={
 var js=JSON.stringify,jp=JSON.parse,ls=localStorage,dc=document,pagelist=["#Home","#Credits","#Formatting"];
 function linked(){
 	var a = $(this),b=a.attr('href');
-	if(b.search(/^http:/)===-1){if($('body').hasClass('go')) confirm('Save changes first?') ? edit_off(true) : edit_off(false);window.location=b}else {this.target='_blank';return true}}
+	if(b.search(/^http:/)===-1){
+		if($('body').hasClass('go')) confirm('Save changes first?') ? edit_off(true) : edit_off(false);window.location=b}
+	else {this.target='_blank';return true}
+}
 function raw(b,d){
 	var a,c;
 	b=b.parent().children('section.q:first'); a=b.data('on') ? true:false
 	if(d||a){ if(a){a=b.children('textarea').val();b.empty().html(a);a=false} b.attr('contenteditable',true)}
 	else{ b.attr('contenteditable',false); a=true; b.html('<textarea>'+b.html()+'</textarea>')} 
-	b.data('on',a)}
+	b.data('on',a)
+}
 function magic(a){
 	a=a.replace(/%%pagelist%%/g, "<ul>"+$.map(pagelist, function(x){ return "<li>[["+x.substr(1)+"]]</li>"}).join('\n')+"</ul>");
-	return a.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>').replace(/\b_([^_]+?)_\b/g, '<em>$1</em>').replace(/\[\[([^"]+?)\]\]/g, '<a href="#$1">$1</a>').replace(/`([^`]+?)`/g, '<code>$1</code>').replace(/"([^"]+?)":(https?:\/\/[^\s"<]+)/g, '<a href="$2">$1</a>').replace(/<a href="([^"]+?)([,\.\?])">(.+?)<\/a>/g, '<a href="$1">$3</a>$2').replace(/"([^"]+?)":<a href="([^"]+?)">(.+?)<\/a>/g, '<a href="$2">$1</a>')}
+	return a.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>').replace(/\b_([^_]+?)_\b/g, '<em>$1</em>').replace(/\[\[([^"]+?)\]\]/g, '<a href="#$1">$1</a>').replace(/`([^`]+?)`/g, '<code>$1</code>').replace(/"([^"]+?)":(https?:\/\/[^\s"<]+)/g, '<a href="$2">$1</a>').replace(/<a href="([^"]+?)([,\.\?])">(.+?)<\/a>/g, '<a href="$1">$3</a>$2').replace(/"([^"]+?)":<a href="([^"]+?)">(.+?)<\/a>/g, '<a href="$2">$1</a>')
+}
 function unmagic(a){a=a.closest('.x');a.html(a.data("unmagic"))}
 function supermagic(a){
 	a.data("unmagic",a.html()); a.html(magic(a.html()));
 	$('a',a).each(function(i,x){x=$(x); if(x.attr('href').match(/^#/))
-		$.inArray(x.attr('href'),pagelist)===-1?x.addClass('broken'):x.removeClass('broken')})}
+		$.inArray(x.attr('href'),pagelist)===-1?x.addClass('broken'):x.removeClass('broken')})
+}
 function settings(c){
 	var a = '#kiwi-settings', b={};
 	a= (ls.getItem(a) ? ls.getItem(a) : js(pages[a]));
 	$.each(jp(a), function(i,x){$.each(x, function(c,d){b[c]=d})});
-	return c?b[c]:b}
+	return c?b[c]:b
+}
 function dosave(a){
 	var b=[],c="#";
 	a=a.closest('.x');c=c+a.attr('id');
@@ -55,7 +62,8 @@ function dosave(a){
 	supermagic(a)}
 function doload(a){
 	var b=jp(ls.getItem('pagelist'));pagelist=b?b:pagelist;
-	myload('#kiwi-header','header.x');myload(a,'article.x');myload('#kiwi-footer','footer.x')}
+	myload('#kiwi-header','header.x');myload(a,'article.x');myload('#kiwi-footer','footer.x')
+}
 function realload(a,b){
 	var c = ls.getItem(a), d="";b=$(b);
 	if(!c){c=pages[a]? pages[a]: jp("[{\""+a.substr(1)+"\":\"<p>This is a new page</p>\"}]")}else c=jp(c);
@@ -90,17 +98,16 @@ header nav{float:left;margin-top:40px;}header nav ul{list-style:none;margin:0;pa
 footer a, footer{color:#240;}footer{padding: 1em;}
 .clear:after{clear:both; content: ".";display: block;height: 0;visibility:hidden;}
 footer li{width: 33%; float:left;}
-section,article,footer{display:block;}
+section,article,footer,header{display:block;}
 #b1,#b2{background:rgba(36, 10, 5, 0.9);#240A05;text-align:left;padding: 16px 20px 8px;position:fixed;z-index:20;top:-8px;left:60px;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px;}
 #b1{display:none}#b1 div{float:left;margin-right: 20px}.go #b1{display:block}.go #b2{display:none}
-article section>header{border-bottom: 2px solid #ccc; margin:0 0 10px;}
+article section header{border-bottom: 2px solid #ccc; margin:0 0 10px;}
 article section button{float:right;margin:7px 5px;}
-article section>header h1{}
 article section section{border:1px dotted transparent;margin:0 0 15px;}
-.go article section section{border:1px dashed #aaa;}
-.go article section>header h1{background:#ded;}
-.go section.e{border:1px solid #7f7;}
-button{-moz-border-radius:5px;-webkit-border-radius:5px;border-radius:5px;background:#82B51B;color:#fff;padding:5px 9px;font-size:0.9em;font-weight:bold;border:0;-moz-box-shadow: 0 1px 3px rgba(0,0,0,0.25); -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.25); box-shadow: 0 1px 3px rgba(0,0,0,0.25); border-bottom: 1px solid rgba(0,0,0,0.25); position: relative; cursor: pointer;text-shadow: 0 -1px 1px rgba(0,0,0,0.25); font-weight: bold; display: inline-block;}
+.go article section section{border:1px dashed #aaa}
+.go article section>header h1{background:#ded}
+.go section.e{border:1px solid #7f7}
+button{-moz-border-radius:5px;-webkit-border-radius:5px;border-radius:5px;background:#82B51B;color:#fff;padding:5px 9px;font-size:0.9em;font-weight:bold;border:0;-moz-box-shadow: 0 1px 3px rgba(0,0,0,0.25); -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.25); box-shadow: 0 1px 3px rgba(0,0,0,0.25); border-bottom: 1px solid rgba(0,0,0,0.25); position: relative; cursor: pointer;text-shadow: 0 -1px 1px rgba(0,0,0,0.25); font-weight: bold; display:inline-block; margin:0 .3em}
 button:hover{background:#72A50B;}
 code,textarea{font: 13px Monaco,"Courier New", Courier, mono;}
 textarea{display:block;width:90%;margin:0 auto;min-height:9em;}
