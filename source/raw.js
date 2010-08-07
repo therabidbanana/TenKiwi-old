@@ -1,3 +1,9 @@
+// ==ClosureCompiler==
+// @compilation_level ADVANCED_OPTIMIZATIONS
+// @warning_level QUIET
+// @externs_url http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js
+// ==/ClosureCompiler==
+
 // Initial page set. Used as a last resort before assumming an empty page. 
 var pages={
 	"#Home": [
@@ -16,51 +22,97 @@ var pages={
 	"#kiwi-footer":[{"All Pages":"%%pagelist%%"}],
 	"#kiwi-settings":[{"Save Url":"", "Load Url":""}]
 };
+var pagelist = ["#Home","#Credits","#Formatting"];
 
 $(function(){
-	var a = location.hash, p = $('.q'); 
-	a = (a ? a:'#Home');
+	var hash = location.hash; 
+	hash = (hash ? hash:'#Home');
 	
 	// Format buttons
 	$.each({
 		'Bulleted List': function(){
-			dc.execCommand('InsertUnorderedList',null,false)
+			document.execCommand('InsertUnorderedList',null,false)
 		},
 		'Numbered List': function(){
-			dc.execCommand('InsertOrderedList',null,false)
+			document.execCommand('InsertOrderedList',null,false)
 		}
 	 }, function(i,a){ 
 		$('#b1').append($('<button class="blue">'+i+'</button>').click(a))
 	});
 	
 	// Links and formatting buttons
-	$('.container a').live('click', linked); 
+	$('button.edit_on').click(edit_on);
+	$('button.edit_off').click(function(){edit_off(true)});
+	$('button.edit_cancel').click(function(){if(confirm('Are you sure?')) edit_off(false)});
+	$('button.add_section').click(function(){new_s();edit_on()});
+	$('.container a').live('click', link); 
 	$('article button.red').live('click', remove_s); 
 	$('article button.blue').live('click', function(){ raw($(this),false) });
 	
 	// Load first page and trigger load on hash changes
 	$(window).bind('hashchange', function(){ doload(location.hash)}); 
-	doload(a);
+	doload(hash);
 });
 
+// Function called whenever a link is clicked. 
+// Causes external links to open in new window and 
+// offers save if internal link clicked.
+function link(){
+	var href = $(this).attr('href');
+	if(href.search(/^http:/)===-1){
+		if($('body').hasClass('go')) 
+		  confirm('Save changes first?') ? edit_off(true) : edit_off(false); 
+		window.location = href;
+	}
+	else {
+	  this.target='_blank';
+	  return true
+	}
+}
 
-var js=JSON.stringify,jp=JSON.parse,ls=localStorage,dc=document,pagelist=["#Home","#Credits","#Formatting"];
-function linked(){
-	var a = $(this),b=a.attr('href');
-	if(b.search(/^http:/)===-1){
-		if($('body').hasClass('go')) confirm('Save changes first?') ? edit_off(true) : edit_off(false);window.location=b}
-	else {this.target='_blank';return true}
+// Function for viewing/editing the content as raw html in textarea.
+// Called with a jQuery selector representing the raw button and 
+// a "force_off" option to force the raw edit to go to off regardless
+// of current toggle.
+function raw(selector,force_off){
+	var is_on, raw;
+	selector=selector.parent().children('section.q:first'); 
+	is_on=selector.data('on') ? true:false;
+	// Turn the raw off if it's already on, or if we're forcing it off (page edit closing)
+	if(force_off || is_on){ 
+	  if(is_on){
+	    raw=selector.children('textarea').val();
+	    selector.empty().html(raw);
+	    is_on=false;
+	  }
+	  selector.attr('contenteditable',true);
+	}
+	else{ 
+	  selector.attr('contenteditable',false); 
+	  is_on=true; 
+	  // Wrap current content in a textarea - does jquery clean it?
+	  selector.html('<textarea>'+selector.html()+'</textarea>');
+	} 
+	// Set toggle value so next call will turn it off/on
+	selector.data('on',is_on);
 }
-function raw(b,d){
-	var a,c;
-	b=b.parent().children('section.q:first'); a=b.data('on') ? true:false
-	if(d||a){ if(a){a=b.children('textarea').val();b.empty().html(a);a=false} b.attr('contenteditable',true)}
-	else{ b.attr('contenteditable',false); a=true; b.html('<textarea>'+b.html()+'</textarea>')} 
-	b.data('on',a)
-}
-function magic(a){
-	a=a.replace(/%%pagelist%%/g, "<ul>"+$.map(pagelist, function(x){ return "<li>[["+x.substr(1)+"]]</li>"}).join('\n')+"</ul>");
-	return a.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>').replace(/\b_([^_]+?)_\b/g, '<em>$1</em>').replace(/\[\[([^"]+?)\]\]/g, '<a href="#$1">$1</a>').replace(/`([^`]+?)`/g, '<code>$1</code>').replace(/"([^"]+?)":(https?:\/\/[^\s"<]+)/g, '<a href="$2">$1</a>').replace(/<a href="([^"]+?)([,\.\?])">(.+?)<\/a>/g, '<a href="$1">$3</a>$2').replace(/"([^"]+?)":<a href="([^"]+?)">(.+?)<\/a>/g, '<a href="$2">$1</a>')
+
+// Formats a given string with our minimal formatting capability, and replaces 
+// certain variables
+function magic(my_str){
+	my_str=my_str.replace(/%%pagelist%%/g, 
+	  "<ul>"+
+	  $.map(pagelist, function(x){ return "<li>[["+x.substr(1)+"]]</li>"}).join('\n')+
+	  "</ul>");
+	my_str = my_str.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
+	my_str = my_str.replace(/\b_([^_]+?)_\b/g, '<em>$1</em>');
+	my_str = my_str.replace(/\[\[([^"]+?)\]\]/g, '<a href="#$1">$1</a>');
+	my_str = my_str.replace(/`([^`]+?)`/g, '<code>$1</code>');
+	my_str = my_str.replace(/([\s\(\>])(https?:\/\/([^\s"<]+))([\s\)\<]*)/g, '$1<a href="$2">$2</a>$4');
+	my_str = my_str.replace(/"([^"]+?)":(https?:\/\/[^\s"<]+)/g, '<a href="$2">$1</a>');
+	my_str = my_str.replace(/<a href="([^"]+?)([,\.\?])">(.+?)<\/a>/g, '<a href="$1">$3</a>$2');
+	my_str = my_str.replace(/"([^"]+?)":<a href="([^"]+?)">(.+?)<\/a>/g, '<a href="$2">$1</a>');
+	return my_str;
 }
 function unmagic(a){a=a.closest('.x');a.html(a.data("unmagic"))}
 function supermagic(a){
@@ -70,32 +122,32 @@ function supermagic(a){
 }
 function settings(c){
 	var a = '#kiwi-settings', b={};
-	a= (ls.getItem(a) ? ls.getItem(a) : js(pages[a]));
-	$.each(jp(a), function(i,x){$.each(x, function(c,d){b[c]=d})});
+	a= (localStorage.getItem(a) ? localStorage.getItem(a) : JSON.stringify(pages[a]));
+	$.each(JSON.parse(a), function(i,x){$.each(x, function(c,d){b[c]=d})});
 	return c?b[c]:b
 }
 function dosave(a){
 	var b=[],c="#";
 	a=a.closest('.x');c=c+a.attr('id');
 	a.children('section').each(function(i,c){
-		b.push("{"+js($(c).children('header').text())+":"+ js($(c).children('section').html())+"}")
+		b.push("{"+JSON.stringify($(c).children('header').text())+":"+ JSON.stringify($(c).children('section').html())+"}")
 	});
-	b="["+b.join(',')+"]";ls.setItem(c,b);
+	b="["+b.join(',')+"]";localStorage.setItem(c,b);
 	if(settings('Save Url').match(/https?:\/\/(.+?)/)) $.post(settings('Save Url'), {'title':c,'content':b}, function(){}, 'json');
-	if($.inArray(c,pagelist) === -1){ pagelist.push(c); ls.setItem('pagelist',js(pagelist))}
+	if($.inArray(c,pagelist) === -1){ pagelist.push(c); localStorage.setItem('pagelist',JSON.stringify(pagelist))}
 	supermagic(a)}
 function doload(a){
-	var b=jp(ls.getItem('pagelist'));pagelist=b?b:pagelist;
+	var b=JSON.parse(localStorage.getItem('pagelist'));pagelist=b?b:pagelist;
 	myload('#kiwi-header','header.x');myload(a,'article.x');myload('#kiwi-footer','footer.x')
 }
 function realload(a,b){
-	var c = ls.getItem(a), d="";b=$(b);
-	if(!c){c=pages[a]? pages[a]: jp("[{\""+a.substr(1)+"\":\"<p>This is a new page</p>\"}]")}else c=jp(c);
+	var c = localStorage.getItem(a), d="";b=$(b);
+	if(!c){c=pages[a]? pages[a]: JSON.parse("[{\""+a.substr(1)+"\":\"<p>This is a new page</p>\"}]")}else c=JSON.parse(c);
 	b.empty();
 	$.each(c,function(i,x){$.each(x,function(j,y){d+=('<section class="clear"><header class="q"><h1>'+j+'</h1></header><section class="q">'+y+'</section></section>')})});
 	b.html(d);supermagic(b);b.attr('id',a.substr(1))}
 function myload(a,b){
-	if(settings('Load Url').match(/https?:\/\/(.+?)/)) $.get(settings('Load Url'), {'title':a,'b':b},function(d){if(!d.error){ls.setItem(d.title,d.content)}realload(d.title,d.b)},'json'); 
+	if(settings('Load Url').match(/https?:\/\/(.+?)/)) $.get(settings('Load Url'), {'title':a,'b':b},function(d){if(!d.error){localStorage.setItem(d.title,d.content)}realload(d.title,d.b)},'json'); 
 	else realload(a,b)}
 function edit_on(){
 	$('body').addClass('go');unmagic($('article'));$('article .q').attr('contenteditable', true);$('article .red,article .blue').remove();$('article header.q').before('<button class="red">Remove</button><button class="blue">Raw</button>')
