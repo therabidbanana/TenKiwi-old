@@ -140,53 +140,95 @@ $.fn.break_links = function(){
   return this;
 }
 
-// Apply the magic function after storing the unaltered html
-// to the jquery data function
-function supermagic(a){
-	a.data("unmagic",a.html()); 
-	a.html(magic(a.html()));
-	$('a',a).each(function(i,x){
-	  x=$(x); 
-	  if(x.attr('href').match(/^#/))
-		  $.inArray(x.attr('href'),pagelist)===-1 ? x.addClass('broken') : x.removeClass('broken');
-	});
-}
-
 function settings(c){
 	var a = '#kiwi-settings', b={};
-	a= (localStorage.getItem(a) ? localStorage.getItem(a) : JSON.stringify(pages[a]));
-	$.each(JSON.parse(a), function(i,x){$.each(x, function(c,d){b[c]=d})});
-	return c?b[c]:b
+	a= localStorage.getItem(a);
+	if(!a) a = JSON.stringify(pages[a]);
+	$.each(JSON.parse(a), function(i,x){
+	  $.each(x, function(c,d){b[c]=d});
+	});
+	return c?b[c]:b;
 }
+
 function dosave(a){
 	var b=[],c="#";
-	a=a.closest('.x');c=c+a.attr('id');
+	a=a.closest('.x');
+	c=c+a.attr('id');
 	a.children('section').each(function(i,c){
-		b.push("{"+JSON.stringify($(c).children('header').text())+":"+ JSON.stringify($(c).children('section').html())+"}")
+		b.push("{" + 
+		  JSON.stringify($(c).children('header').text()) + ":" +  
+		  JSON.stringify($(c).children('section').html()) + "}");
 	});
-	b="["+b.join(',')+"]";localStorage.setItem(c,b);
-	if(settings('Save Url').match(/https?:\/\/(.+?)/)) $.post(settings('Save Url'), {'title':c,'content':b}, function(){}, 'json');
-	if($.inArray(c,pagelist) === -1){ pagelist.push(c); localStorage.setItem('pagelist',JSON.stringify(pagelist))}
-	a.magic()}
+	b="[" + b.join(',') + "]";
+	localStorage.setItem(c,b);
+	
+	if(settings('Save Url').match(/https?:\/\/(.+?)/)) 
+	  $.post(settings('Save Url'), {'title':c,'content':b}, function(){}, 'json');
+	if($.inArray(c,pagelist) === -1){ 
+	  pagelist.push(c); 
+	  localStorage.setItem('pagelist',JSON.stringify(pagelist))
+	}
+	a.magic();
+}
+
 function doload(a){
-	var b=JSON.parse(localStorage.getItem('pagelist'));pagelist=b?b:pagelist;
-	myload('#kiwi-header','header.x');myload(a,'article.x');myload('#kiwi-footer','footer.x')
+	var b=JSON.parse(localStorage.getItem('pagelist'));
+	pagelist=b?b:pagelist;
+	myload('#kiwi-header','header.x');
+	myload(a,'article.x');
+	myload('#kiwi-footer','footer.x')
 }
+
 function realload(a,b){
-	var c = localStorage.getItem(a), d="";b=$(b);
-	if(!c){c=pages[a]? pages[a]: JSON.parse("[{\""+a.substr(1)+"\":\"<p>This is a new page</p>\"}]")}else c=JSON.parse(c);
+	var c = localStorage.getItem(a), d="";
+	b=$(b);
+	if(!c){
+	  c=pages[a]? pages[a]: JSON.parse("[{\""+a.substr(1)+"\":\"<p>This is a new page</p>\"}]")
+	}
+	else c=JSON.parse(c);
 	b.empty();
-	$.each(c,function(i,x){$.each(x,function(j,y){d+=('<section class="clear"><header class="q"><h1>'+j+'</h1></header><section class="q">'+y+'</section></section>')})});
-	b.html(d);b.magic();b.attr('id',a.substr(1))}
+	$.each(c,function(i,x){
+	  $.each(x,function(j,y){
+	    d+=('<section class="clear"><header class="q"><h1>'+j+
+	      '</h1></header><section class="q">'+y+'</section></section>')
+	  });
+	});
+	b.html(d);
+	b.magic();
+	b.attr('id',a.substr(1));
+}
+	
 function myload(a,b){
-	if(settings('Load Url').match(/https?:\/\/(.+?)/)) $.get(settings('Load Url'), {'title':a,'b':b},function(d){if(!d.error){localStorage.setItem(d.title,d.content)}realload(d.title,d.b)},'json'); 
-	else realload(a,b)}
+	if(settings('Load Url').match(/https?:\/\/(.+?)/)) 
+	  $.get(settings('Load Url'), {'title':a,'b':b}, function(d){
+	    if(!d.error){localStorage.setItem(d.title,d.content)}
+	    realload(d.title,d.b)
+	  },'json'); 
+	else realload(a,b)
+}
+
 function edit_on(){
-	$('body').addClass('go');$('article.x').unmagic();$('article .q').attr('contenteditable', true);$('article .red,article .blue').remove();$('article header.q').before('<button class="red">Remove</button><button class="blue">Raw</button>')
+	$('body').addClass('go');
+	$('article.x').unmagic();
+	$('article .q').attr('contenteditable', true);
+	$('article .red,article .blue').remove();
+	$('article header.q').before('<button class="red">Remove</button><button class="blue">Raw</button>');
 }
+
 function edit_off(a){
-	$('article .blue').each(function(i,x){raw($(x),true);});$('body').removeClass('go');$('article .q').attr('contenteditable', false);$('article .red, article .blue').remove();
-	if(a) dosave($('article')); else doload(location.hash);
+	$('article .blue').each(function(i,x){raw($(x),true);});
+	$('body').removeClass('go');
+	$('article .q').attr('contenteditable', false);
+	$('article .red, article .blue').remove();
+	if(a) dosave($('article')); 
+	else doload(location.hash);
 }
-function remove_s(){ $(this).closest('section').remove(); $('article.x').m_store();}
-function new_s(){ $('article.x').append('<section><header class="q"><h1>New</h1></header><section class="q"><p>New content</p></section></section>'); $('article.x').m_store();}
+
+function remove_s(){
+  $(this).closest('section').remove(); $('article.x').m_store();
+}
+
+function new_s(){ 
+  $('article.x').append('<section><header class="q"><h1>New</h1></header><section class="q"><p>New content</p></section></section>'); 
+  $('article.x').m_store();
+}
