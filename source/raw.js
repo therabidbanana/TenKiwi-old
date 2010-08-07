@@ -131,7 +131,7 @@ $.fn.magic = function(){
   return this.m_store().html(magic_str(this.html())).break_links();
 }
 
-// Break links if applicable
+// "Break" links if applicable (style as broken)
 $.fn.break_links = function(){
   $('a',this).each(function(){
     x=$(this).attr('href');
@@ -140,14 +140,14 @@ $.fn.break_links = function(){
   return this;
 }
 
+// Pull a value from the kiwi-settings page
 function settings(c){
 	var a = '#kiwi-settings', b={};
-	a= localStorage.getItem(a);
-	if(!a) a = JSON.stringify(pages[a]);
+	a= localStorage.getItem(a) ? localStorage.getItem(a) :  JSON.stringify(pages[a]);
 	$.each(JSON.parse(a), function(i,x){
 	  $.each(x, function(c,d){b[c]=d});
 	});
-	return c?b[c]:b;
+	return c ? b[c] : b;
 }
 
 function dosave(a){
@@ -155,9 +155,7 @@ function dosave(a){
 	a=a.closest('.x');
 	c=c+a.attr('id');
 	a.children('section').each(function(i,c){
-		b.push("{" + 
-		  JSON.stringify($(c).children('header').text()) + ":" +  
-		  JSON.stringify($(c).children('section').html()) + "}");
+		b.push("{" + JSON.stringify($(c).children('header').text()) + ":" + JSON.stringify($(c).children('section').html()) + "}");
 	});
 	b="[" + b.join(',') + "]";
 	localStorage.setItem(c,b);
@@ -189,8 +187,7 @@ function realload(a,b){
 	b.empty();
 	$.each(c,function(i,x){
 	  $.each(x,function(j,y){
-	    d+=('<section class="clear"><header class="q"><h1>'+j+
-	      '</h1></header><section class="q">'+y+'</section></section>')
+	    d+=('<section class="clear"><header class="q"><h1>'+j+'</h1></header><section class="q">'+y+'</section></section>')
 	  });
 	});
 	b.html(d);
@@ -199,12 +196,15 @@ function realload(a,b){
 }
 	
 function myload(a,b){
-	if(settings('Load Url').match(/https?:\/\/(.+?)/)) 
+	if(settings('Load Url').match(/https?:\/\/(.+?)/)){
 	  $.get(settings('Load Url'), {'title':a,'b':b}, function(d){
-	    if(!d.error){localStorage.setItem(d.title,d.content)}
-	    realload(d.title,d.b)
-	  },'json'); 
-	else realload(a,b)
+	    if(!d.error){
+	      localStorage.setItem(d.title, d.content);
+	    }
+	    realload(d.title, d.b);
+	  }, 'json'); 
+	}
+	else realload(a,b);
 }
 
 function edit_on(){
@@ -225,7 +225,8 @@ function edit_off(a){
 }
 
 function remove_s(){
-  $(this).closest('section').remove(); $('article.x').m_store();
+  $(this).closest('section').remove(); 
+  $('article.x').m_store();
 }
 
 function new_s(){ 
