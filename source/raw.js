@@ -11,7 +11,7 @@ var pages={
 		{"What can it do?":"<p>You can create as many pages as you'd like, and fill them with whatever \"content\":[[Formatting]] suits your fancy. All of your changes are saved locally, acting like your very own private wiki that doesn't require any extra software to run. Use it to store notes, links or whatever else might suit your fancy.</p>"}
 	],
 	"#Credits":[
-		{"Who's Responsible?":"<p>TenKiwi was coded by \"David Haslem\":http://davidhaslem.com.</p>"}
+		{"Who's Responsible?":"<p>TenKiwi was coded by \"David Haslem\":http://davidhaslem.com, who works at \"Orange Sparkle Ball\":http://osb.co.</p>"}
 	],
 	"#Formatting":[
 		{"Content Formatting":"<p>Content Formatting is easy in **TenKiwi** - `just try editing` _this page_ to see. You can link back to a page, like the [[Home]] page, or to an external site like \"Google\":http://www.google.com, or link to \"a page with special link text\":[[Home]].</p>"}
@@ -99,10 +99,10 @@ function raw(selector,force_off){
 
 // Formats a given string with our minimal formatting capability, and replaces 
 // certain variables
-function magic(my_str){
+function magic_str(my_str){
 	my_str=my_str.replace(/%%pagelist%%/g, 
-	  "<ul>"+
-	  $.map(pagelist, function(x){ return "<li>[["+x.substr(1)+"]]</li>"}).join('\n')+
+	  "<ul>" +
+	  $.map(pagelist, function(x){ return "<li>[["+x.substr(1)+"]]</li>"}).join('\n') +
 	  "</ul>");
 	my_str = my_str.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
 	my_str = my_str.replace(/\b_([^_]+?)_\b/g, '<em>$1</em>');
@@ -114,12 +114,44 @@ function magic(my_str){
 	my_str = my_str.replace(/"([^"]+?)":<a href="([^"]+?)">(.+?)<\/a>/g, '<a href="$2">$1</a>');
 	return my_str;
 }
-function unmagic(a){a=a.closest('.x');a.html(a.data("unmagic"))}
-function supermagic(a){
-	a.data("unmagic",a.html()); a.html(magic(a.html()));
-	$('a',a).each(function(i,x){x=$(x); if(x.attr('href').match(/^#/))
-		$.inArray(x.attr('href'),pagelist)===-1?x.addClass('broken'):x.removeClass('broken')})
+
+
+// Undo magic function (uses jquery data to restore unaltered html)
+$.fn.unmagic = function(){
+  return this.html(this.data('m'));
 }
+
+// Store html for later unmagic
+$.fn.m_store = function(){
+  return this.data("m",this.html());
+}
+
+// Apply magic function to selector
+$.fn.magic = function(){
+  return this.m_store().html(magic_str(this.html())).break_links();
+}
+
+// Break links if applicable
+$.fn.break_links = function(){
+  $('a',this).each(function(){
+    x=$(this).attr('href');
+    if(x.match(/^#/)) $.inArray(x,pagelist)===-1 ? $(this).addClass('broken') : $(this).removeClass('broken');
+  }); 
+  return this;
+}
+
+// Apply the magic function after storing the unaltered html
+// to the jquery data function
+function supermagic(a){
+	a.data("unmagic",a.html()); 
+	a.html(magic(a.html()));
+	$('a',a).each(function(i,x){
+	  x=$(x); 
+	  if(x.attr('href').match(/^#/))
+		  $.inArray(x.attr('href'),pagelist)===-1 ? x.addClass('broken') : x.removeClass('broken');
+	});
+}
+
 function settings(c){
 	var a = '#kiwi-settings', b={};
 	a= (localStorage.getItem(a) ? localStorage.getItem(a) : JSON.stringify(pages[a]));
@@ -135,7 +167,7 @@ function dosave(a){
 	b="["+b.join(',')+"]";localStorage.setItem(c,b);
 	if(settings('Save Url').match(/https?:\/\/(.+?)/)) $.post(settings('Save Url'), {'title':c,'content':b}, function(){}, 'json');
 	if($.inArray(c,pagelist) === -1){ pagelist.push(c); localStorage.setItem('pagelist',JSON.stringify(pagelist))}
-	supermagic(a)}
+	a.magic()}
 function doload(a){
 	var b=JSON.parse(localStorage.getItem('pagelist'));pagelist=b?b:pagelist;
 	myload('#kiwi-header','header.x');myload(a,'article.x');myload('#kiwi-footer','footer.x')
@@ -145,16 +177,16 @@ function realload(a,b){
 	if(!c){c=pages[a]? pages[a]: JSON.parse("[{\""+a.substr(1)+"\":\"<p>This is a new page</p>\"}]")}else c=JSON.parse(c);
 	b.empty();
 	$.each(c,function(i,x){$.each(x,function(j,y){d+=('<section class="clear"><header class="q"><h1>'+j+'</h1></header><section class="q">'+y+'</section></section>')})});
-	b.html(d);supermagic(b);b.attr('id',a.substr(1))}
+	b.html(d);b.magic();b.attr('id',a.substr(1))}
 function myload(a,b){
 	if(settings('Load Url').match(/https?:\/\/(.+?)/)) $.get(settings('Load Url'), {'title':a,'b':b},function(d){if(!d.error){localStorage.setItem(d.title,d.content)}realload(d.title,d.b)},'json'); 
 	else realload(a,b)}
 function edit_on(){
-	$('body').addClass('go');unmagic($('article'));$('article .q').attr('contenteditable', true);$('article .red,article .blue').remove();$('article header.q').before('<button class="red">Remove</button><button class="blue">Raw</button>')
+	$('body').addClass('go');$('article.x').unmagic();$('article .q').attr('contenteditable', true);$('article .red,article .blue').remove();$('article header.q').before('<button class="red">Remove</button><button class="blue">Raw</button>')
 }
 function edit_off(a){
 	$('article .blue').each(function(i,x){raw($(x),true);});$('body').removeClass('go');$('article .q').attr('contenteditable', false);$('article .red, article .blue').remove();
 	if(a) dosave($('article')); else doload(location.hash);
 }
-function remove_s(){ $(this).closest('section').remove(); $('article.x').data("unmagic",$('article.x').html())}
-function new_s(){ $('article.x').append('<section><header class="q"><h1>New</h1></header><section class="q"><p>New content</p></section></section>'); $('article.x').data("unmagic",$('article.x').html())}
+function remove_s(){ $(this).closest('section').remove(); $('article.x').m_store();}
+function new_s(){ $('article.x').append('<section><header class="q"><h1>New</h1></header><section class="q"><p>New content</p></section></section>'); $('article.x').m_store();}
