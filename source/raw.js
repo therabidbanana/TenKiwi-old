@@ -27,7 +27,7 @@ var pagelist = ["#Home","#Credits","#Formatting"];
 $(function(){
 	var hash = location.hash; 
 	hash = (hash ? hash:'#Home');
-	
+  if(location.hash != hash){ location  = hash};
 	// Format buttons
 	$.each({
 		'Bulleted List': function(){
