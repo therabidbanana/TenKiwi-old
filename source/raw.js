@@ -141,36 +141,54 @@ $.fn.break_links = function(){
 }
 
 // Pull a value from the kiwi-settings page
-function settings(c){
-	var a = '#kiwi-settings', b={};
-	a= localStorage.getItem(a) ? localStorage.getItem(a) :  JSON.stringify(pages[a]);
-	$.each(JSON.parse(a), function(i,x){
-	  $.each(x, function(c,d){b[c]=d});
+function settings(for_key){
+	var page = '#kiwi-settings', settings={};
+	page= localStorage.getItem(page) ? localStorage.getItem(page) :  JSON.stringify(pages[page]);
+	$.each(JSON.parse(page), function(i,x){
+	  $.each(x, function(key,val){settings[key] = val});
 	});
-	return c ? b[c] : b;
+	return for_key ? settings[for_key] : settings;
 }
 
-function dosave(a){
-	var b=[],c="#";
-	a=a.closest('.x');
-	c=c+a.attr('id');
-	a.children('section').each(function(i,c){
-		b.push("{" + JSON.stringify($(c).children('header').text()) + ":" + JSON.stringify($(c).children('section').html()) + "}");
-	});
-	b="[" + b.join(',') + "]";
-	localStorage.setItem(c,b);
-	
-	if(settings('Save Url').match(/https?:\/\/(.+?)/)) 
-	  $.post(settings('Save Url'), {'title':c,'content':b}, function(){}, 'json');
-	if($.inArray(c,pagelist) === -1){ 
-	  pagelist.push(c); 
-	  localStorage.setItem('pagelist',JSON.stringify(pagelist))
-	}
-	a.magic();
+// Save a value to localStorage, and to the external storage if available
+function storage_save(key, val, save){
+  val=JSON.stringify(val);
+  localStorage.setItem(key,val);
+  if(save && settings('Save Url').match(/https?:\/\/(.+?)/))
+    $.post(settings('Save Url'),{'title':key,'content':val});
+}
+
+// Storage Load
+function storage_load(key){
+  return JSON.parse(localStorage.getItem(key));
+}
+
+// Only push if value not already in array
+Array.prototype.push_uniq = function(val){
+  if($.inArray(val,this)===-1) this.push(val);
+}
+
+$.fn.page_save = function(){
+  var page_data, page_name = "#";
+  page_name += this.attr('id');
+  page_data = this.children('section').map(function(i,d){
+    i={};
+    i[$(d).children('h1').text()] = $(d).children('section').html();
+    return i;
+  }).get();
+  
+  storage_save(page_name,page_data,true);
+  storage_save('pagelist',pagelist.push_uniq(page_name),false);
+  
+  this.magic();
+}
+
+$.fn.page_load = function(page_name){
+  
 }
 
 function doload(a){
-	var b=JSON.parse(localStorage.getItem('pagelist'));
+	var b=storage_load('pagelist');
 	pagelist=b?b:pagelist;
 	myload('#kiwi-header','header.x');
 	myload(a,'article.x');
@@ -220,7 +238,7 @@ function edit_off(a){
 	$('body').removeClass('go');
 	$('article .q').attr('contenteditable', false);
 	$('article .red, article .blue').remove();
-	if(a) dosave($('article')); 
+	if(a) $('article.x').page_save(); 
 	else doload(location.hash);
 }
 
